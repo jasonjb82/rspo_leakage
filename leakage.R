@@ -84,9 +84,6 @@ nobs <- length(sample$defor[!is.na(sample$defor)])
 print(npts)
 print(nobs)
 
-sample <- sample %>%
-  filter(rand < 0.6)
-
 ## Main regression results - building up to full model (T3)
 cert_ape <- bife(defor ~ cert_now + 
                    factor(kh) + factor(year) | pid, data = sample)  %>% bc_APE()
