@@ -5,10 +5,12 @@
 1. Download or clone repository to local machine
 2. Open RStudio project file rspo_leakage.rnw
 3. Run `packrat::status()` in the console to see packages that need to be installed
-4. Run `packrat::restore()` to install packages and dependencies. If required, a window will popup requesting RTools to be installed. Install RTools and then re-run packrat::restore()
+4. Run `packrat::restore()` to install packages and dependencies. If required, a window will popup requesting `RTools` to be installed. Install RTools and then re-run `packrat::restore()`
 5. Once all packages have been installed, you should be able to run the code with all the required libraries.
 
-Additional Resources on 
+Additional Resources on packrat at the links below
+[1] https://rstudio.github.io/packrat/
+[2]
 
 
 
