@@ -17,7 +17,7 @@
 
 
 
-Additional information and resources on `packrat` at the links below
+#### Additional information and resources on `packrat` at the links below
 
 [1] https://rstudio.github.io/packrat/
 
