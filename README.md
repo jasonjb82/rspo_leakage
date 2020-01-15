@@ -8,10 +8,11 @@
 4. Run `packrat::restore()` to install packages and dependencies. If required, a window will popup requesting `RTools` to be installed. Install RTools and then re-run `packrat::restore()`
 5. Once all packages have been installed, you should be able to run the code with all the required libraries.
 
-Additional Resources on packrat at the links below
+Additional information and resources on `packrat` at the links below
 
 [1] https://rstudio.github.io/packrat/
-[2]
+[2] http://rstudio-pubs-static.s3.amazonaws.com/221948_fb7215fecb0d49ac903f701fd8d45132.html
+[3] https://blog.methodsconsultants.com/posts/using-packrat-with-git-submodules/
 
 
 
