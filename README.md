@@ -8,7 +8,7 @@
 
 2. Open `R` project file `rspo_leakage.Rproj` in RStudio. Once the project opens, `packrat` will automatically be installed into the project private library. The `R` session will restart when this is completed.
 
-3. Run `packrat::status()` in the console to see list of packages used in the code that need to be installed for you to run the code
+3. Run `packrat::status()` in the console to see list of packages used in the code that need to be installed for you to run the code.
 
 4. Run `packrat::restore()` in the console to all required packages install packages and dependencies. If required, a window will pop up requesting `RTools` to be installed. Install RTools and then re-run `packrat::restore()` to finishing installing any other packages and dependencies.
 
