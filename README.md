@@ -11,7 +11,9 @@
 Additional information and resources on `packrat` at the links below
 
 [1] https://rstudio.github.io/packrat/
+
 [2] http://rstudio-pubs-static.s3.amazonaws.com/221948_fb7215fecb0d49ac903f701fd8d45132.html
+
 [3] https://blog.methodsconsultants.com/posts/using-packrat-with-git-submodules/
 
 
