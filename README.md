@@ -1,18 +1,18 @@
 ## RSPO Leakage
 
-#### This repository contains the RStudio project set up with `packrat` for code used on 'Deforestation spillovers from oil palm sustainability certification' (DOI). This project has a private project library that installs version of libraries and any dependencies used in the code for this project.
+#### This repository contains the RStudio project set up with `packrat` package for code used on 'Deforestation spillovers from oil palm sustainability certification' (DOI). This project has a private project library that installs version of libraries and any dependencies used in the code for this project.
 
 
 **Instructions on how to download and use the code**
 1. Download or clone repository to local machine
 
-2. Open RStudio project file rspo_leakage.rnw
+2. Open `R` project file `rspo_leakage.Rproj`. `packrat' will be installed into project private library
 
-3. Run `packrat::status()` in the console to see packages that need to be installed
+3. Run `packrat::status()` in the console to see list of packages used in the code that need to be installed for you to run the code
 
-4. Run `packrat::restore()` to install packages and dependencies. If required, a window will popup requesting `RTools` to be installed. Install RTools and then re-run `packrat::restore()`
+4. Run `packrat::restore()` to install packages and dependencies. If required, a window will pop up requesting `RTools` to be installed. Install RTools and then re-run `packrat::restore()` to finishing installing any other packages and dependencies.
 
-5. Once all packages have been installed, you should be able to run the code with all the required libraries.
+5. Once all packages have been installed, open `rspo_leakage.R` and run the code.
 
 
 Additional information and resources on `packrat` at the links below
