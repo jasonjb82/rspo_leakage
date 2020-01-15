@@ -6,7 +6,7 @@
 **Instructions on how to download and use the code**
 1. Download or clone repository to local machine
 
-2. Open `R` project file `rspo_leakage.Rproj`. Once the project opens, `packrat` will automatically be installed into the project private library
+2. Open `R` project file `rspo_leakage.Rproj`. Once the project opens, `packrat` will automatically be installed into the project private library. The `R` session will restart when this is completed.
 
 3. Run `packrat::status()` in the console to see list of packages used in the code that need to be installed for you to run the code
 
