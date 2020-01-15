@@ -1,7 +1,8 @@
 ## RSPO Leakage
-##### This repository contains the RStudio project set up with `packrat` for code used on (DOI). This project has a private project library that installs version of libraries used in setting up the code for this project and any dependencies.
+#### This repository contains the RStudio project set up with `packrat` for code used on (DOI). This project has a private project library that installs version of libraries used in setting up the code for this project and any dependencies.
 
 Instructions on how to download and use the code
+================================================
 
 1. Download or clone repository to local machine
 2. Open RStudio project file rspo_leakage.rnw
