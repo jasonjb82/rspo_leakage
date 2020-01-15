@@ -9,6 +9,7 @@
 5. Once all packages have been installed, you should be able to run the code with all the required libraries.
 
 Additional Resources on packrat at the links below
+
 [1] https://rstudio.github.io/packrat/
 [2]
 
