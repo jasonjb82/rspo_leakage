@@ -12,7 +12,7 @@
 
 4. Run `packrat::restore()` in the console to all required packages install packages and dependencies. If required, a window will pop up requesting `RTools` to be installed. Install RTools and then re-run `packrat::restore()` to finishing installing any other packages and dependencies.
 
-5. Once all packages have been installed, open `rspo_leakage.R` and run the code.
+5. Once all packages have been installed, open `leakage.R` and run the code.
 
 
 
