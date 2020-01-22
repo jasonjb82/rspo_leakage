@@ -3,7 +3,7 @@
 #### This repository contains the `R` project set up with the `packrat` package for code used for the analysis in the paper *'Deforestation spillovers from oil palm sustainability certification' (DOI)*. This project has a private project library that installs version of libraries and any dependencies used in the code for this project.
 
 
-##### Instructions on how to download and use the code
+#### Instructions on how to download and use the code
 ----------------------------------------------------
 1. Download or clone repository to local machine.
 
