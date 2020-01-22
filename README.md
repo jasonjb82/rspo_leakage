@@ -3,7 +3,8 @@
 #### This repository contains the `R` project set up with the `packrat` package for code used for the analysis in the paper *'Deforestation spillovers from oil palm sustainability certification' (DOI)*. This project has a private project library that installs version of libraries and any dependencies used in the code for this project.
 
 
-_**Instructions on how to download and use the code**_
+**Instructions on how to download and use the code**
+----------------------------------------------------
 1. Download or clone repository to local machine.
 
 2. Open `R` project file `rspo_leakage.Rproj` in RStudio. Once the project opens, `packrat` will automatically be installed into the project private library. The `R` session will restart when this is completed.
