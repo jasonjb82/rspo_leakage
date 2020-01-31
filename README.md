@@ -5,7 +5,7 @@
 
 Instructions on how to download and use the code
 ----------------------------------------------------
-1. Download or clone repository to local machine. If the location of the project folder is on any cloud storage backup service like `Dropbox` or `Microsoft OneDrive`, pause the the syncing process to prevent any issues with the package installation process.
+1. Download or clone repository to local machine. If the location of the project folder is in a location that is being backed up by a cloud storage service like `Dropbox` or `Microsoft OneDrive`, pause the the syncing process to prevent any issues with the package installation process.
 
 2. Open `R` project file `rspo_leakage.Rproj` in RStudio. Once the project opens, `packrat` will automatically install into the project private library. The `R` session will restart when this is completed.
 
