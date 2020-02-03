@@ -35,3 +35,10 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 packrat/lib*/
+input/long_kali.csv
+input/master_mill_data.csv
+output/fig03_cert_status.png
+output/fig05_impactofdefor_boxplot.png
+output/fig06_comb_ioc_deforprob_map.png
+output/release_spillovers.doc
+output/tbl3_zone_change_areas_ss.doc
