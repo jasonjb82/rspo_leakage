@@ -13,6 +13,7 @@ library(reshape2)
 library(sf)
 library(lubridate)
 library(rnaturalearth)
+library(rnaturalearthdata)
 library(scales)
 library(rgdal)
 library(kableExtra)
@@ -22,13 +23,15 @@ library(cowplot)
 library(raster)
 library(ggnewscale)
 library(janitor)
+library(ggridges)
+library(rgeos)
 
 select <- dplyr::select
 
 #### Load/clean data ####
 ## Load primary dataset
-df <- read.csv("https://www.dropbox.com/s/twhtst4b1jopteh/long_kali.csv?dl=1")
-mill_df <- read_csv("https://www.dropbox.com/s/batp38bk1ww0iyw/master_mill_data.csv?dl=1")
+df <- read.csv("input/long_kali.csv")
+mill_df <- read_csv("input/master_mill_data.csv")
 
 ## Filter to points starting as forest
 df <- df %>%
@@ -260,7 +263,7 @@ map <- list("cert_now" = "Certified",
 htmlreg(list(cert.bife,certkh.bife, gc.bife, gckh.bife, pcc.bife, pcckh.bife, all.bife, allkh.bife), 
        custom.coef.map = map,use.packages = FALSE,scalebox = 0.65,label = "tab3", stars = c(0.01, 0.05, 0.1),
        digits =4, caption="Spillovers",caption.above=TRUE,no.margin = TRUE,column.spacing=0,
-       file = paste0(out_dir,"\\results\\tables\\tbl2_spillover_regression.doc"))
+       file = "output/tbl2_spillover_regression.doc")
 
 ## Table S2 - Areas of forests and deforestation
 # Calculating forest areas within and outside certified supply shed area
@@ -303,7 +306,7 @@ tbl3<- kable(lu_areas_tbl[c(1,2,3,4,5),2:7], "html",align = "r",caption=NA,row.n
                      paste0("(thousand km", "<sup>", 2, "</sup>",")")),bold = T,align="c",escape = FALSE) %>%
   add_header_above(c("Concession type","Forest Estate to Forest Estate","Forest Estate to APL","APL to APL","APL to Forest Estate","Total"),bold=T,align="c",escape = FALSE, line = F)
 
-write_file(tbl3,paste0(out_dir,"/results/tables/tbl3_zone_change_areas_ss.doc"))
+write_file(tbl3,"output/tbl3_zone_change_areas_ss.doc")
 
 #### Figures ####
 
@@ -433,7 +436,7 @@ cs_plot <- ggplot(prov_caps_long_df, aes(x=year, y=value, fill=cert))+
 cs_plot
 
 # save plot to png
-ggsave(cs_plot,file=paste0(out_dir,"/results/figures/fig03_cert_status.png"),dpi=500,w=9,h=5,unit="in",type="cairo-png")
+ggsave(cs_plot,file="output/fig03_cert_status.png",dpi=500,w=9,h=5,unit="in",type="cairo-png")
 
 #### Figure 5 
 ## Impact of certification - simulated densities
@@ -496,7 +499,7 @@ ioc_plot <- ggplot(long.dif, aes(x = use_class, y = dif, fill = as.character(kh)
 ioc_plot
 
 # save plot to png
-ggsave(ioc_plot,file=paste0(out_dir,"/results/figures/fig05_impactofdefor_boxplot.png"),dpi=500,w=9,h=5,unit="in",type="cairo-png")
+ggsave(ioc_plot,file="output/fig05_impactofdefor_boxplot.png",dpi=500,w=9,h=5,unit="in",type="cairo-png")
 
 
 ## Figure 6
@@ -517,6 +520,9 @@ sample_sf <-  sample %>%
 
 sample_sf <- full_join(sample_sf, defor.dif, by = "sid") %>%
   drop_na()
+
+# install rnaturalearthhires
+install.packages("rnaturalearthhires", repos = "http://packages.ropensci.org", type = "source")
 
 coast_sf <- ne_coastline(scale = "large", returnclass = "sf")
 countries_sf <- ne_countries(scale = "large", returnclass = "sf")
@@ -689,7 +695,7 @@ comb_defor_dif_map <- ggdraw(xlim = c(0, 35), ylim = c(0, 22)) +
 comb_defor_dif_map
 
 # save to png file
-ggsave(comb_defor_dif_map,file=paste0(out_dir,"/results/figures/fig06_comb_ioc_deforprob_map.png"),dpi=500,w=8,h=6,unit="in",type="cairo-png")
+ggsave(comb_defor_dif_map,file="output/fig06_comb_ioc_deforprob_map.png",dpi=500,w=8,h=6,unit="in",type="cairo-png")
 
 #### Paper calculations ####
 ## Section 3.1
@@ -850,7 +856,7 @@ coef_map <- list("cert_now:factor(kh)0" = "Certified x Not forest estate",
 htmlreg(list(allkh.bife, kh_2018.bife, kh_release.bife), 
         custom.coef.map = coef_map,use.packages = FALSE,scalebox = 0.65,label = "tab3",
         digits =4, caption="Spillovers",caption.above=TRUE,no.margin = TRUE,column.spacing=0,
-        stars = c(0.01, 0.05, 0.1), file = paste0(out_dir,"\\results\\tables\\release_spillovers.doc"))
+        stars = c(0.01, 0.05, 0.1), file = "output/release_spillovers.doc")
 
 ## Section 4.4
 # Net effect
@@ -915,3 +921,4 @@ allkh_mod <- bife(defor ~ cert_now:factor(kh) + pccp:factor(kh) + g_cert_shr:fac
                     factor(kh) + factor(year) | pid, data = sample %>% filter(points_pid>10))
 allkh_bc <- bias_corr(allkh_mod)
 allkh_ape <- allkh_mod %>% bc_APE()
+
