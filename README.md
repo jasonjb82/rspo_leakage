@@ -15,7 +15,7 @@ Instructions on how to download and use the code
 
 5. Run `packrat::restore()` in the console to all required packages install packages and dependencies. If required, a window will pop up requesting `RTools` to be installed. Install RTools and then re-run `packrat::restore()` to finishing installing any other packages and dependencies.
 
-6. Once all packages have been installed, open `leakage.R` and run the code.
+6. Once all packages have been installed, open `leakage.R` and run the code. Figures, plot and tables will be saved into the `output` folder.
 
 
 
