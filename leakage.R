@@ -25,15 +25,19 @@ library(ggnewscale)
 library(janitor)
 library(ggridges)
 library(rgeos)
+install.packages("rnaturalearthhires", repos = "http://packages.ropensci.org", type = "source")
 
 select <- dplyr::select
 
 #### Load/clean data ####
-## Load primary dataset
+## Load primary datasets
 df <- read.csv("input/long_kali.csv")
 mill_df <- read_csv("input/master_mill_data.csv")
 
-## Filter to points starting as forest
+## Define parameter for conversion of points (2x2km sample grid) to area (4km2 representation)
+area_wght <- 4
+
+## Filter to points starting as forest (drops from 106889 to 59513 points)
 df <- df %>%
   filter(for_2000 != 0)
 
@@ -44,24 +48,22 @@ df$pid <- as.numeric(as.factor(df$propid))
 ## Define kh to be used
 df$kh <- df$kh_2005
 
-## Move to data prep...
-df$on_op <- df$conc_class==3
+## ID points belonging to RSPO member company with some certification elsewhere
 rspo_member <- df %>%
   group_by(grp_id) %>%
   summarize(on_rspo = max(g_cert_shr) > 0)
 df <- full_join(df, rspo_member, by = "grp_id")
 
+## Create op_type variable to indicate whether points are not on oil palm concession (1),
+## on an rspo member concession (2), or on an ever-certified concession
+df$on_op <- df$conc_class==3
 df$op_type = 1
 df <- df %>%
   mutate(op_type = replace(op_type, on_op==1, 2),
-         # op_type = replace(op_type, on_rspo==1, 2),
          op_type = replace(op_type, cert==1, 3))
 
-## Define g_cert_shr to be used
-df$g_cert_shr_orig <- df$g_cert_shr
-# df$g_certs_shr <- df$g_cert_shr_adj
-
-## Filter sample to observations with actual variation in deforestation
+## Filter sample to management units with some actual variation in deforestation
+## These are the only units that bife approach can use. Drops sample further to 48157 samples
 n_outcomes = df  %>%
   filter(!is.na(defor)) %>% 
   group_by(pid) %>%     
@@ -73,6 +75,7 @@ sample <- df %>% filter(pid %in% keep)
 sample <- sample[order(sample$pid, sample$year),]
 
 #### Regressions ####
+## Define helper function to run bife
 bc_APE <- function(bife_model){
   apes <- get_APEs(bias_corr(bife_model))
   apes$nobs <- nobs
@@ -146,7 +149,7 @@ agg_sims <- function(simulated, sample, sum_cats) {
 
 smry_stats <- function(agg.sim) {
   simtab <- agg.sim %>%
-    select(contains("_cum_defor")) * 4
+    select(contains("_cum_defor")) * area_wght
   agg.sim$mean <- simtab %>%
     rowMeans()
   agg.sim$std <- simtab %>%
@@ -157,7 +160,7 @@ smry_stats <- function(agg.sim) {
   return(stats_smry)  
 }
 
-## Define simulation model
+## Define regression to be used for simulations
 sim_mod <- allkh_bc
 
 ## Attach alphas to sample
@@ -182,7 +185,6 @@ X.cf <- model.matrix(formula, data.cf)[,-1]
 ## Draw parameters for simulation
 mod_adj <- sim_mod
 sum_cats <- c("op_type", "kh")
-# sum_cats <- c("cert", "on_op", "on_rspo")
 beta <- sim_mod$coefficients
 beta_cov <- vcov(sim_mod)
 n <- 1000
@@ -211,12 +213,9 @@ proc.time() - ptm
 start_for <- sample %>%
   filter(year==2004) %>%
   group_by_at(sum_cats) %>%
-  summarise(for_area = sum(forest, na.rm = TRUE) * 4)
+  summarise(for_area = sum(forest, na.rm = TRUE) * area_wght)
 agg.shr <- agg.dif
 agg.shr[, grep("_cum_defor", names(agg.shr))] <- agg.shr[, grep("_cum_defor", names(agg.shr))] / start_for$for_area * 100
-# names(agg.bl[, grep("_cum_defor", names(agg.bl))]) <- names(agg.bl[, grep("_cum_defor", names(agg.bl))]) %>%
-#   str_replace("_cum_defor_defor", "") %>%
-#   str_replace("X", "sim")
 
 
 #### Tables ####
@@ -237,7 +236,7 @@ extract.tex <- function(bife.ape) {
   return(tex)
 }
 
-## Table 3: Main spillover regressions
+## Table 2: Main spillover regressions
 cert.bife <- extract.tex(cert_ape)
 certkh.bife <- extract.tex(certkh_ape)
 pcc.bife <- extract.tex(pcc_ape)
@@ -278,7 +277,7 @@ lu_areas <-  sample %>%
   filter(op_type==1 | op_type==2 | op_type ==3) %>%
   select(sid,op_type,kh_2005,kh_2018,in_ss) %>%
   group_by(in_ss,op_type,kh_2005,kh_2018) %>%
-  summarise(area = n()*4/1000) %>%
+  summarise(area = n()*area_wght/1000) %>%
   ungroup()
 
 # Reformat to create table
@@ -310,7 +309,7 @@ write_file(tbl3,"output/tbl3_zone_change_areas_ss.doc")
 
 #### Figures ####
 
-## Figure 4 ##
+## Figure 3 ##
 # Reformatting data for figure
 certyr_df <- mill_df %>%
    select(db_id,ci_year) %>%
@@ -438,7 +437,7 @@ cs_plot
 # save plot to png
 ggsave(cs_plot,file="output/fig03_cert_status.png",dpi=500,w=9,h=5,unit="in",type="cairo-png")
 
-#### Figure 5 
+#### Figure 4 
 ## Impact of certification - simulated densities
 type_totals <- agg.dif %>%
   group_by(op_type) %>%
@@ -499,10 +498,10 @@ ioc_plot <- ggplot(long.dif, aes(x = use_class, y = dif, fill = as.character(kh)
 ioc_plot
 
 # save plot to png
-ggsave(ioc_plot,file="output/fig05_impactofdefor_boxplot.png",dpi=500,w=9,h=5,unit="in",type="cairo-png")
+ggsave(ioc_plot,file="output/fig04_impactofdefor_boxplot.png",dpi=500,w=9,h=5,unit="in",type="cairo-png")
 
 
-## Figure 6
+## Figure 5
 persist.cf <- point_persist(simulated.cf)
 persist.bl <- point_persist(simulated.bl)
 sim_cols <- grep("cum_defor", names(persist.bl))
@@ -520,9 +519,6 @@ sample_sf <-  sample %>%
 
 sample_sf <- full_join(sample_sf, defor.dif, by = "sid") %>%
   drop_na()
-
-# install rnaturalearthhires
-install.packages("rnaturalearthhires", repos = "http://packages.ropensci.org", type = "source")
 
 coast_sf <- ne_coastline(scale = "large", returnclass = "sf")
 countries_sf <- ne_countries(scale = "large", returnclass = "sf")
@@ -695,13 +691,13 @@ comb_defor_dif_map <- ggdraw(xlim = c(0, 35), ylim = c(0, 22)) +
 comb_defor_dif_map
 
 # save to png file
-ggsave(comb_defor_dif_map,file="output/fig06_comb_ioc_deforprob_map.png",dpi=500,w=8,h=6,unit="in",type="cairo-png")
+ggsave(comb_defor_dif_map,file="output/fig05_comb_ioc_deforprob_map.png",dpi=500,w=8,h=6,unit="in",type="cairo-png")
 
 #### Paper calculations ####
 ## Section 3.1
 
 # Total area covered by supply shed (in sqkm)
-length(unique(sample$sid))*4
+length(unique(sample$sid))*area_wght
 
 ## Section 4.3
 # Sample sizes
@@ -797,12 +793,8 @@ spillover_pct <- net_spillover / (areas %>% filter(sum_group == "Certified") %>%
 op_defor <- sample %>%
   filter(conc_class == 3,
          year >= 2009) %>%
-  summarise(defor_area = sum(defor, na.rm = TRUE) * 4)
+  summarise(defor_area = sum(defor, na.rm = TRUE) * area_wght)
 
-sample %>%
-  filter(conc_class == 3,
-         year == 2009) %>%
-  summarise(defor_area = sum(forest, na.rm = TRUE) * 4)
 agg_effect / op_defor
 
 # KH release and relation to deforestation
