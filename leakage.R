@@ -31,14 +31,14 @@ select <- dplyr::select
 
 #### Load/clean data ####
 ## Load primary datasets
-df <- read.csv("input/long_kali.csv")
+full.df <- read.csv("input/long_kali.csv")
 mill_df <- read_csv("input/master_mill_data.csv")
 
 ## Define parameter for conversion of points (2x2km sample grid) to area (4km2 representation)
 area_wght <- 4
 
 ## Filter to points starting as forest (drops from 106889 to 59513 points)
-df <- df %>%
+df <- full.df %>%
   filter(for_2000 != 0)
 
 ## Clean up variables
@@ -471,7 +471,8 @@ long.dif <- long.dif %>%
 ## Box plot
 ioc_plot <- ggplot(long.dif, aes(x = use_class, y = dif, fill = as.character(kh))) + 
             geom_boxplot(aes(middle = mean(dif)),notch=FALSE) +
-            coord_flip()+
+            coord_flip() +
+            geom_vline(xintercept = 1.5, linetype = "solid", color = "black") +
             scale_point_color_hue(l = 40) +
             scale_discrete_manual(aesthetics = "point_fill", values = c(0, 1)) +
             ylab("Change in forest area"~(km^2)) + xlab("Land use category\n")+
@@ -481,7 +482,7 @@ ioc_plot <- ggplot(long.dif, aes(x = use_class, y = dif, fill = as.character(kh)
             labels = c( "Sum", "APL", "Forest estate")) +
             theme_bw()+
             scale_x_discrete(breaks=c(0, 1, 2, 3),
-            labels=c("Total",
+            labels=c("Total deforestation\nacross landscape",
                      "Outside oil palm\nconcessions", 
                      "Never certified\noil palm concessions",
                      "Certified oil palm\nconcessions")) +
@@ -695,50 +696,38 @@ ggsave(comb_defor_dif_map,file="output/fig05_comb_ioc_deforprob_map.png",dpi=500
 
 #### Paper calculations ####
 ## Section 3.1
+# We drew an evenly spaced, 2 x 2 km grid across the supply shed of all 
+# Kalimantan oil palm mills and sampled individual points at the intersection 
+# points of  this grid (106,889 points, representing 422,556 km2). 
+n <- length(unique(full.df$sid))
+area <- n * area_wght
 
-# Total area covered by supply shed (in sqkm)
-length(unique(sample$sid))*area_wght
-
-## Section 4.3
-# Sample sizes
-n_fiber <- df %>%
-  filter(!is.na(fiber_id), year==2004) %>%
-  select(fiber_id) %>%
+## Section 3.4
+# for the 11,261 points that fell within one of 890 oil palm concessions (17), 
+# we assigned the oil palm concession as the management unit; (2) for the remaining 
+# 22,301 points that fell within one of 396 timber and pulp concessions (46,47), we 
+# assigned the timber or pulp concession as the management unit; (3) for the remaining 
+# 25,951 points falling outside of any concession, we assigned the local village (Desa) 
+op_npts <- df %>% 
+  filter(year==2004, conc_class==3) %>% 
+  n_distinct()
+timber_npts <- df %>% 
+  filter(year==2004, conc_class==2) %>% 
+  n_distinct()
+other_npts <- df %>% 
+  filter(year==2004, conc_class==1) %>% 
   n_distinct()
 
-n_logging <- df %>%
-  filter(!is.na(log_id), year==2004) %>%
-  select(fiber_id) %>%
-  n_distinct()
-n_logging + n_fiber
-
-df %>%
-  filter(year==2004, conc_class==2) %>%
-  select(sid) %>%
-  n_distinct()
-
-df %>%
-  filter(!is.na(plant_code), year==2004) %>%
-  select(plant_code) %>%
-  n_distinct()
-
-df %>%
-  filter(year==2004, on_op==1) %>%
-  select(sid) %>%
-  n_distinct()
-
-
-df %>%
-  filter(year==2004, conc_class==1) %>%
-  select(sid) %>%
-  n_distinct()
-
-df %>%
-  filter(year==2004, conc_class==1) %>%
-  select(adm_4) %>%
-  n_distinct()
 
 ## Section 4.1
+# Total Kalimantan mill capacity increased 496% from 2,373 to 14,145 tonnes of FFB hour-1 
+# between 2004 and 2016. Mill investments were particularly pronounced in Central and East 
+# Kalimantan, where installed capacity increased 548% and 2,450%, respectively. The first 
+# letter of intent to RSPO-certify a Kalimantan oil palm mill was issued on March 12, 2009. 
+# Subsequently, certification rates increased in all provinces except North Kalimantan. By 
+# 2016, 23% of total mill capacity in Kalimantan was certified, with an additional 25% 
+#   attributed to mills held by RSPO member companies. 
+
 # Get percent cap change from 2004 to 2016
 total_mill_cap <- prov_caps_long_df %>%
   group_by(year) %>%
@@ -759,43 +748,98 @@ pc_cert <- prov_caps_long_df %>%
   summarise (totals=sum(value)) %>%
   mutate(pc_share = paste0(round(100 * totals/sum(totals), 0), "%"))
 
-## Section 4.2 (Cut section)
-cert_defor <- sample %>%
-  filter(cert_now==1) %>%
-  select(defor)
-defor <- cert_defor %>%
-  filter(defor==TRUE) %>%
-  dim()
-nodefor <- cert_defor %>%
-  filter(defor==FALSE) %>%
-  dim()
-defor_rate <- defor[1] / (defor[1]+nodefor[1])
-att <- -0.0119
-cf <- defor_rate - att
-pct_change <- att / cf
+## Section 4.4
+# Compared to the no-certification counterfactual, corporate group and local 
+# supply chain spillovers generated a statistically insignificant increase in 
+# total 2016 forest area outside of certified oil palm supply bases (median 
+# simulation = +9 km2, 0.025-0.975 quantile range = -46 to +102 km2) (Figure 
+# 4 and Figure 5). However, these effects differed across with land use zones. 
+# Spillovers had a clear conservation benefit within the forest estate 
+# (median simulation = +49 km2, 0.025-0.975 quantile range = +12 to +141 km2), 
+# but induced deforestation in APL lands (median simulation = -44 km2, 0.025-0.975 
+# quantile range = -73 to -15 km2). The median simulation indicates that aggregate 
+# avoided deforestation from certification’s direct and spillover effects in 
+# Kalimantan was 58 km2. However, due to the large variance in simulated spillover 
+# effects, only 85% of simulations estimated a net increase in total Kalimantan 
+# forest area. This contrasts with the precisely estimated, positive direct 
+# impacts of certification in certified supply bases (median simulation = 
+# +28 km2, 0.025-0.975 quantile range = +19 to +37 km2).
+all.dif %>% 
+  filter(op_type %in% c(1, 2), kh==-1) %>% 
+  select(ends_with("cum_defor_defor")) %>% 
+  unlist(., use.names = FALSE) %>% 
+  quantile(c(0.025, 0.5, 0.975))
 
-## Section 4.5
-areas <- long.dif %>%
-  mutate(sum_group = if_else(cert==1, "Certified", if_else(kh==0, "APL", "Kawasan hutan"))) %>%
-  group_by(sum_group, variable) %>%
-  summarise(dif = sum(dif)) %>%
-  group_by(sum_group) %>%
-  summarise(mean = mean(dif))
+all.dif %>% 
+  filter(op_type %in% c(1,2), kh==1) %>% 
+  select(ends_with("cum_defor_defor")) %>% 
+  unlist(., use.names = FALSE) %>% 
+  quantile(c(0.025, 0.5, 0.975))
 
-loss <- sum(areas %>% filter(sum_group=="APL") %>% select(mean))
-gains <- sum(areas %>% filter(sum_group %in% c("Kawasan hutan", "Certified")) %>% select(mean))
-leak_pct <- loss / gains * 100
-agg_effect <-sum(areas$mean)
-net_spillover <- areas %>% filter(sum_group %in% c('APL', 'Kawasan hutan')) %>% select(mean) %>% sum()
-spillover_pct <- net_spillover / (areas %>% filter(sum_group == "Certified") %>% select(mean) %>% sum()) 
+all.dif %>% 
+  filter(op_type %in% c(1,2), kh==0) %>% 
+  select(ends_with("cum_defor_defor")) %>% 
+  unlist(., use.names = FALSE) %>% 
+  quantile(c(0.025, 0.5, 0.975))
 
-# Abstract
+x <- all.dif %>% 
+  filter(op_type == 0, kh==-1) %>% 
+  select(ends_with("cum_defor_defor")) %>% 
+  unlist(., use.names = FALSE)
+
+all.dif %>% 
+  filter(op_type == 0, kh==-1) %>% 
+  select(ends_with("cum_defor_defor")) %>% 
+  unlist(., use.names = FALSE) %>% 
+  quantile(c(0.5))
+
+1-ecdf(x)(0)
+
+all.dif %>% 
+  filter(op_type == 3, kh==-1) %>% 
+  select(ends_with("cum_defor_defor")) %>% 
+  unlist(., use.names = FALSE) %>% 
+  quantile(c(0.025, 0.5, 0.975))
+
+## 5.3
+# We estimate that, since the first RSPO certificate was issued in 
+# 2009, Kalimantan’s certified and non-certified oil palm concessions 
+# experienced 33,000 km2 of forest loss. Our maximum estimate  of 
+# avoided deforestation from the RSPO’s direct and indirect impacts 
+# is <1% of this clearing. 
 op_defor <- sample %>%
   filter(conc_class == 3,
          year >= 2009) %>%
   summarise(defor_area = sum(defor, na.rm = TRUE) * area_wght)
 
-agg_effect / op_defor
+max_est <- all.dif %>% 
+  filter(op_type == 0, kh==-1) %>% 
+  max()
+
+max_est / op_defor
+
+## SI Section 9.2
+# Land use zoning
+short_df <- df %>%
+  filter(year==2016) %>%
+  mutate(kh_release = (kh_2005==1) & (kh_2018==0))
+
+release_rate <- short_df %>% 
+  filter(on_op==1, kh_2005==1) %>% 
+  tabyl(kh_release, on_rspo)
+(release_rate %>% filter(kh_release == 1)) / (release_rate %>% summarise_all(sum))
+
+
+
+
+
+
+
+
+
+
+
+## DEPRECATED
 
 # KH release and relation to deforestation
 short_df <- df %>%
@@ -816,89 +860,7 @@ sample <- sample %>%
          kh_all = kh_2005,
          kh_all = replace(kh_all, kh_release==1, 2))
 
-## Explore new model with three types - APL, redesignated APL, KH
-sample <- sample %>%
-  mutate(kh = kh_2018)
-kh_2018_ape <- bife(defor ~ cert_now:factor(kh)+ pccp:factor(kh) + 
-                         g_cert_shr:factor(kh) + factor(kh) + factor(year) | 
-                         pid, data = sample) %>% bc_APE()
-sample <- sample %>%
-  mutate(kh = kh_all)
-kh_release_ape <- bife(defor ~ cert_now:factor(kh)+ pccp:factor(kh)  + 
-                        g_cert_shr:factor(kh) + factor(kh) + factor(year) | 
-                        pid, data = sample) %>% bc_APE()
-sample <- sample %>%
-  mutate(kh = kh_2005)
 
-
-# Create regression table
-kh_2018.bife <- extract.tex(kh_2018_ape) 
-kh_release.bife <- extract.tex(kh_release_ape) 
-
-coef_map <- list("cert_now:factor(kh)0" = "Certified x Not forest estate",
-            "cert_now:factor(kh)1" = "Certified x Forest estate",
-            "cert_now:factor(kh)2" = "Certified x Released forest estate",
-            "factor(kh)0:g_cert_shr" = "Certified share of parent company's holdings x Not forest estate",
-            "factor(kh)1:g_cert_shr" = "Certified share of parent company's holdings x Forest estate",
-            "factor(kh)2:g_cert_shr" = "Certified share of parent company's holdings x Released forest estate",
-            "factor(kh)0:pccp" = "Certified share of local mill capacity x Not forest estate",
-            "factor(kh)1:pccp" = "Certified share of local mill capacity x Forest estate",
-            "factor(kh)2:pccp" = "Certified share of local mill capacity x Released forest estate")
-
-htmlreg(list(allkh.bife, kh_2018.bife, kh_release.bife), 
-        custom.coef.map = coef_map,use.packages = FALSE,scalebox = 0.65,label = "tab3",
-        digits =4, caption="Spillovers",caption.above=TRUE,no.margin = TRUE,column.spacing=0,
-        stars = c(0.01, 0.05, 0.1), file = "output/release_spillovers.doc")
-
-## Section 4.4
-# Net effect
-all.dif %>% 
-  filter(op_type %in% c(1, 2), kh==-1) %>% 
-  select(ends_with("cum_defor_defor")) %>% 
-  unlist(., use.names = FALSE) %>% 
-  quantile(c(0.025, 0.5, 0.975))
-
-all.dif %>% 
-  filter(op_type %in% c(1,2), kh==1) %>% 
-  select(ends_with("cum_defor_defor")) %>% 
-  unlist(., use.names = FALSE) %>% 
-  quantile(c(0.025, 0.5, 0.975))
-
-all.dif %>% 
-  filter(op_type %in% c(1,2), kh==0) %>% 
-  select(ends_with("cum_defor_defor")) %>% 
-  unlist(., use.names = FALSE) %>% 
-  quantile(c(0.025, 0.5, 0.975))
-
-all.dif %>% 
-  filter(op_type == 3, kh==-1) %>% 
-  select(ends_with("cum_defor_defor")) %>% 
-  unlist(., use.names = FALSE) %>% 
-  quantile(c(0.025, 0.5, 0.975))
-
-x <- all.dif %>% 
-  filter(op_type == 0, kh==-1) %>% 
-  select(ends_with("cum_defor_defor")) %>% 
-  unlist(., use.names = FALSE)
-
-1-ecdf(x)(0)
-
-all.dif %>% 
-  filter(op_type == 0, kh==-1) %>% 
-  select(ends_with("cum_defor_defor")) %>% 
-  unlist(., use.names = FALSE) %>% 
-  quantile(c(0.5))
-
-## SI Section 9.2
-# Land use zoning
-short_df <- df %>%
-  filter(year==2016) %>%
-  mutate(kh_release = (kh_2005==1) & (kh_2018==0))
-
-release_rate <- short_df %>% 
-  filter(on_op==1, kh_2005==1) %>% 
-  tabyl(kh_release, on_rspo)
-(release_rate %>% filter(kh_release == 1)) / (release_rate %>% summarise_all(sum))
 
 ## Test robustness to sample with only large management units
 points_pid <- sample %>% 
@@ -914,3 +876,19 @@ allkh_mod <- bife(defor ~ cert_now:factor(kh) + pccp:factor(kh) + g_cert_shr:fac
 allkh_bc <- bias_corr(allkh_mod)
 allkh_ape <- allkh_mod %>% bc_APE()
 
+
+
+## Section 4.2 (Cut section)
+cert_defor <- sample %>%
+  filter(cert_now==1) %>%
+  select(defor)
+defor <- cert_defor %>%
+  filter(defor==TRUE) %>%
+  dim()
+nodefor <- cert_defor %>%
+  filter(defor==FALSE) %>%
+  dim()
+defor_rate <- defor[1] / (defor[1]+nodefor[1])
+att <- -0.0119
+cf <- defor_rate - att
+pct_change <- att / cf
