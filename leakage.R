@@ -266,12 +266,12 @@ htmlreg(list(cert.bife,certkh.bife, gc.bife, gckh.bife, pcc.bife, pcckh.bife, al
 
 ## Table S2 - Areas of forests and deforestation
 # Calculating forest areas within and outside certified supply shed area
-cert_st <- sample %>%
+cert_st <- df %>%
   select(sid,pccp) %>%
   group_by(sid) %>%
   summarize(in_ss = max(pccp) > 0)
 
-lu_areas <-  sample %>%
+lu_areas <-  df %>%
   filter(year==2004, !is.na(defor)) %>%
   right_join(cert_st,by="sid") %>%
   filter(op_type==1 | op_type==2 | op_type ==3) %>%
@@ -748,6 +748,30 @@ pc_cert <- prov_caps_long_df %>%
   summarise (totals=sum(value)) %>%
   mutate(pc_share = paste0(round(100 * totals/sum(totals), 0), "%"))
 
+# The RSPO-certified supply base area also expanded, and by 2016, 
+# 7% of all concession area was certified, while 22%  was held by 
+# RSPO member companies.
+rspo_member <- full.df %>%
+  group_by(grp_id) %>%
+  summarize(on_rspo = max(g_cert_shr) > 0)
+full.df <- full_join(full.df, rspo_member, by = "grp_id")
+op_type <- full.df %>%
+  filter(conc_class==3) %>%
+  group_by(cert, on_rspo) %>%
+  summarise(totals = n_distinct(sid))
+
+cert_n <- op_type %>% 
+  filter(cert==1, on_rspo==TRUE) %>% 
+  pull(totals)
+cert_shr <- cert_n / (op_type$totals %>% sum())
+  
+rspo_n <- op_type %>% 
+  filter(on_rspo==TRUE) %>% 
+  select(totals) %>%
+  sum() 
+rspo_shr <- rspo_n / (op_type$totals %>% sum())
+rspo_shr - cert_shr
+
 ## Section 4.4
 # Compared to the no-certification counterfactual, corporate group and local 
 # supply chain spillovers generated a statistically insignificant increase in 
@@ -807,10 +831,10 @@ all.dif %>%
 # experienced 33,000 km2 of forest loss. Our maximum estimate  of 
 # avoided deforestation from the RSPO’s direct and indirect impacts 
 # is <1% of this clearing. 
-op_defor <- sample %>%
+op_defor <- df %>%
   filter(conc_class == 3,
          year >= 2009) %>%
-  summarise(defor_area = sum(defor, na.rm = TRUE) * area_wght)
+  summarise(defor_area = sum(defor, na.rm = TRUE) * area_wght)  
 
 max_est <- all.dif %>% 
   filter(op_type == 0, kh==-1) %>% 
@@ -829,66 +853,3 @@ release_rate <- short_df %>%
   tabyl(kh_release, on_rspo)
 (release_rate %>% filter(kh_release == 1)) / (release_rate %>% summarise_all(sum))
 
-
-
-
-
-
-
-
-
-
-
-## DEPRECATED
-
-# KH release and relation to deforestation
-short_df <- df %>%
-  filter(year==2016, op_type==1) %>%
-  mutate(kh_release = (kh_2005==1) & (kh_2018==0),
-         cert_shed = pccp>0)
-release_rate <- short_df %>% tabyl(kh_release, cert_shed)
-release_rate %>% filter(kh_release == TRUE) / release_rate %>% summarise_all(sum)
-
-permitted_defor <- short_df %>%
-  filter(kh05_defor==1) %>%
-  tabyl(kh_release, on_rspo)
-(permitted_defor %>% select(kh_release==TRUE))
-
-
-sample <- sample %>%
-  mutate(kh_release = (kh_2005==1) & (kh_2018==0),
-         kh_all = kh_2005,
-         kh_all = replace(kh_all, kh_release==1, 2))
-
-
-
-## Test robustness to sample with only large management units
-points_pid <- sample %>% 
-  filter(year==2004) %>%
-  group_by(pid) %>% 
-  summarize(points_pid = n_distinct(sid))
-
-sample <- sample %>%
-  full_join(points_pid, by = "pid")
-
-allkh_mod <- bife(defor ~ cert_now:factor(kh) + pccp:factor(kh) + g_cert_shr:factor(kh) + 
-                    factor(kh) + factor(year) | pid, data = sample %>% filter(points_pid>10))
-allkh_bc <- bias_corr(allkh_mod)
-allkh_ape <- allkh_mod %>% bc_APE()
-
-
-
-## Section 4.2 (Cut section)
-cert_defor <- sample %>%
-  filter(cert_now==1) %>%
-  select(defor)
-defor <- cert_defor %>%
-  filter(defor==TRUE) %>%
-  dim()
-nodefor <- cert_defor %>%
-  filter(defor==FALSE) %>%
-  dim()
-defor_rate <- defor[1] / (defor[1]+nodefor[1])
-att <- -0.0119
-cf <- defor_rate - att
-pct_change <- att / cf
