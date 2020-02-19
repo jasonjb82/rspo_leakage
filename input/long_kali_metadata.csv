@@ -1,5 +1,5 @@
 variable_id,description,type,source
-sid,"unique id for sample		",numeric,
+sid,"unique id of sample		",numeric,
 year,year associated with sample,integer (YYYY),
 fiber_id,"wood fiber concession ID		",string,Global Forest Watch. Indonesia wood fiber concessions (2018)
 adm_4,desa or village name (4th order administrative level),string,Database of Global Administrative Areas (GADM) v3.4
@@ -32,20 +32,20 @@ ci_year,certification intent year of mill,integer (YYYY),Roundtable on Sustainab
 on_logging,located on logging concession,boolean (1=true/0=false),
 primary,located in primary forest,boolean (1=true/0=false),Margono et. al. Primary forest cover loss in Indonesia over 2000–2012 (2014)
 adm_2,kabupaten name (2nd order administrative level),string,Database of Global Administrative Areas (GADM) v3.4
-lossyear,year of forest loss for each sample,integer (YYYY),Hansen/UMD/Google/USGS/NASA
+lossyear,year of forest loss,integer (YYYY),Hansen/UMD/Google/USGS/NASA
 conc_class,concession class,integer (1 - oil palm concession/2 - rspo member concession/3 - ever-certified concession),
 plant_code,"plantation code	",string,
 adm_1,province name (1st order administrative level),string,Database of Global Administrative Areas (GADM) v3.4
 island,island name,string,Database of Global Administrative Areas (GADM) v3.4
-temp,mean land surface temperature for a specific year,numeric (degrees Kelvin scaled by 0.02),MODIS derived Land Surface Temperatures (MOD11A2) 
-precip,mean precipitation estimate for a specific year,numeric (millimetres/hour),Tropical Rainfall Monitoring Mission (TRMM) derived 3-hourly precipitation estimates 
+temp,mean land surface temperature for a specific year (degrees Kelvin scaled by 0.02),numeric,MODIS derived Land Surface Temperatures (MOD11A2) 
+precip,mean precipitation estimate for a specific year (millimetres/hour),numeric,Tropical Rainfall Monitoring Mission (TRMM) derived 3-hourly precipitation estimates 
 "pcct			",,numeric,
 "cmcap			",sum of certified capacity,numeric,
 "cmcnt			",count of certified capacity,numeric,
 mcap,"mill capacity		",numeric,
 "mcnt			",,numeric,
 pccp,certified share of local mill capacity,numeric (decimal portion of 1),
-cdist,"distances to certified concessions		",numeric,
+cdist,distances to certified concessions (meters),numeric,
 ndist,,numeric,
 "cert_now			",certified in specific year,boolean (1=true/0=false),
 "cert			",,boolean (1=true/0=false),
