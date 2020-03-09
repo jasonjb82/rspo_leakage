@@ -664,7 +664,7 @@ inset_map2 <- ggplot(sample_df) +
   coord_sf() +
   geom_sf(data = countries_sf %>% filter((name_en == "Indonesia")),alpha = 0, size=0.5,fill="white")+
   geom_sf(data = countries_sf %>% filter((name_en == "Malaysia") | (name_en == "Brunei")),size=0.5,alpha=0,fill="white") +
-  coord_sf(xlim = c(112.25, 113.25), ylim = c(-0.96,-2.30)) +
+  coord_sf(xlim = c(112.25, 113.25), ylim = c(-2.30,-0.96)) +
   scalebar(dist = 25, dist_unit = "km",st.bottom=TRUE,height=0.075,st.size = 3,st.dist=0.1,border.size = 0.5,
   transform = TRUE, model = "WGS84",x.min=112.35,x.max=112.75,y.min=-0.60,y.max=-1.00)+
   scale_fill_brewer(palette = "RdBu", drop = FALSE, direction = -1,na.translate=F,
