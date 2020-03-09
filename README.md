@@ -7,7 +7,7 @@ Instructions on how to download and use the code
 ----------------------------------------------------
 1. Download or clone repository to local machine. If the location of the project folder is in a location that is being backed up by a cloud storage service like `Dropbox` or `Microsoft OneDrive`, pause the syncing process to prevent any issues with the package installation process.
 
-2. Extract files in `data.zip`(`long_kali.csv` & `master_mill_data.csv`) in the `input` folder into the same folder. 
+2. Extract files in `data.zip`(`long_kali.csv`, `master_mill_data.csv` and `long_kali_metadata.csv`) in the `input` folder into the same folder. 
 
 3. Open `R` project file `rspo_leakage.Rproj` in RStudio. Once the project opens, `packrat` will automatically install into the project private library. The `R` session will restart when this is completed.
 
