@@ -1,6 +1,6 @@
 # RSPO Leakage
 
-#### This repository contains the `R` project set up with the `packrat` package for code used for the analysis in the paper *'Deforestation spillovers from oil palm sustainability certification' (DOI)*. This project has a private project library that installs version of libraries and any dependencies used in the code for this project. In addition, the repo contains all data necessary to replicate the paper's analyses.
+#### This repository contains the `R` project set up with the `packrat` package for code used for the analysis in the paper *'Deforestation spillovers from oil palm sustainability certification' (https://doi.org/10.1088/1748-9326/ab7f0c)*. This project has a private project library that installs version of libraries and any dependencies used in the code for this project. In addition, the repo contains all data necessary to replicate the paper's analyses.
 
 
 Instructions on how to download and use the code
